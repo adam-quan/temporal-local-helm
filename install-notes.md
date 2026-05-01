@@ -534,6 +534,10 @@ You should see something like this: `AIwGCx4ASUZAD2ffedBWa48HRAWLx1k8oQ30p7rk`
 
 ### 7.6 Port-forward the Grafana UI
 
+```bash
+kubectl port-forward deployment/prometheus-grafana 3000 -n temporal
+```
+
 With the password handy, we now can log into Grafana. Go to http://localhost:3000, and log in with the user `admin` and the password above.
 
 ### 7.7 Import the Temporal server dashboard

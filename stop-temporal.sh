@@ -3,6 +3,8 @@
 echo "==> Stopping port-forwards..."
 pkill -f "kubectl port-forward services/temporal-frontend-headless" 2>/dev/null || true
 pkill -f "kubectl port-forward services/temporal-web" 2>/dev/null || true
+pkill -f "kubectl port-forward services/prometheus-kube-prometheus-prometheus" 2>/dev/null || true
+pkill -f "kubectl port-forward deployment/prometheus-grafana" 2>/dev/null || true
 
 echo "==> Stopping minikube..."
 minikube stop

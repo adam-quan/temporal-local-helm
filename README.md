@@ -6,9 +6,10 @@ A step-by-step guide and scripts for running a local Temporal OSS cluster using 
 
 | File | Purpose |
 |------|---------|
-| `install-notes.md` | Full installation guide — prerequisites, PostgreSQL setup, Temporal helm install, and connecting your local machine to the cluster |
+| `install-notes.md` | Full installation guide — prerequisites, PostgreSQL setup, Temporal helm install, Promethus & Grafana install, and connecting your local machine to the cluster |
 | `values.postgresql.yaml` | Helm values file configured for PostgreSQL persistence and visibility stores |
-| `start-temporal.sh` | Starts minikube and both port-forwards in one command |
+| `servicemonitor.yaml` | ServiceMonitor deployment to scrape Temporal service metrics |
+| `start-temporal.sh` | Starts minikube and all port-forwards in one command |
 | `stop-temporal.sh` | Stops port-forwards and minikube cleanly |
 
 ## Stack
@@ -38,6 +39,8 @@ Once the initial install is complete:
 |----------|---------|
 | Web UI | http://localhost:8080 |
 | SDK / CLI | localhost:7233 |
+| Promethus | localhost:9090 |
+| Grafana | localhost:3000 |
 
 ## First Time Setup
 
