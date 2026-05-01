@@ -285,6 +285,13 @@ At this point the system is prepped. You have:
 
 In Helm, a values file is your configuration layer — it lets you customize the chart's defaults without modifying the chart code. Think of it as the set of answers you provide before the install runs.
 
+In the Temporal Helm chart, `values.yaml` and `values.postgresql.yaml` represent a layered configuration relationship where `values.yaml` provides general defaults and `values.postgresql.yaml` provides specific overrides for using PostgreSQL as the backend database.
+
+- `values.yaml` (The Base): This is the main configuration file that contains the global defaults for the entire Temporal cluster, such as service replicas, image tags, and resource limits.
+- `values.postgresql.yaml` (The Override): This is a specialized configuration snippet designed to "pivot" the deployment to use PostgreSQL instead of the default. It contains the necessary persistence settings—such as database host, user, and driver details—to tell the Temporal server how to connect to a Postgres instance.
+
+When you install the chart, you use the `-f` flag to merge these files. Helm performs a deep merge, meaning values in the second file override those in the first.
+
 ```bash
 curl -O https://raw.githubusercontent.com/temporalio/helm-charts/main/charts/temporal/values/values.postgresql.yaml
 ```
@@ -416,6 +423,132 @@ kubectl get pods -n temporal -l app.kubernetes.io/name=temporal-admintools
 Navigate to `http://127.0.0.1:8080/namespaces` — the `default` namespace should now appear.
 
 - [ ] `default` namespace visible in the Web UI
+
+---
+
+## Phase 7 — Prometheus and Grafana Installation
+
+All Temporal services expose extensive amount of metrics for observability. These metrics are critical for performance tuning and troubleshooting. By installing Prometheus and Grafana, we will be able to collect these metrics, visualize them and create alerts.
+
+The easiest way to install both is using the prometheus helm chart from the [community repo](https://prometheus-community.github.io/helm-charts). The `kube-prometheus-stack` includes Prometheus, Grafana, AlertManager, and useful exporters.
+
+A couple of great blogs on this topic:
+
+- [Working with Prometheus and Grafana Using Helm](https://www.geeksforgeeks.org/devops/working-with-prometheus-and-grafana-using-helm/)
+- [Deploying Prometheus and Grafana with Helm](https://oneuptime.com/blog/post/2026-01-17-helm-prometheus-grafana-deployment/view)
+- [A Complete Guide to Prometheus, Grafana, and ServiceMonitors](https://saraswathilakshman.medium.com/a-complete-guide-to-prometheus-grafana-and-servicemonitors-fcc104dc3087)
+
+### 7.1 Add the Prometheus Helm repo
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts/
+helm repo update
+```
+
+- [ ] `"prometheus-community" has been added to your repositories`
+
+---
+
+### 7.2 Verify the Prometheus chart is available
+
+```bash
+helm search repo kube-prometheus-stack
+```
+
+- [ ] `prometheus-community/kube-prometheus-stack` appears in results with a version number
+
+---
+
+### 7.3 Install the Helm chart
+
+Install the chart with default settings. For production deployment, custom values need to be configured (cpu, memory etc.)
+
+```bash
+helm install prometheus prometheus-community/kube-prometheus-stack -n temporal
+```
+
+### 7.4 Verify the installation
+
+```bash
+# Check all pods are running
+kubectl get pods -n temporal | grep prometheus
+
+# Check services
+kubectl get svc -n temporal | grep prometheus
+
+# Port forward, to check that Prometheus is scraping targets
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 -n temporal
+```
+Open http://localhost:9090/targets, you should see all the targests Prometheus is scraping metrics from. 
+
+### 7.5 Scrape metrics from Temporal services
+
+We need to deploy a ServiceMonitor to scrape Temporal metrics. A ServiceMonitor is a Custom Resource Definition (CRD) introduced by the Prometheus Operator. It tells Prometheus exactly which Kubernetes Services to monitor and how to find their metrics endpoints. 
+
+The file `servicemonitor.yaml` contains with the following content. We are basically scraping all `/metrics` endpoints from the `temporal` namespace.
+
+```bash
+# servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: temporal-monitor
+  namespace: temporal
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/headless: 'true'
+  namespaceSelector:
+    matchNames:
+      - temporal
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+```
+
+Deploy the ServiceMonitor:
+
+```bash
+kubectl apply -f servicemonitor.yaml
+```
+
+### 7.6 Verify Temporal metrics targets
+
+Got to http://localhost:9090/targets, you should see all four Temporal services listed. Similar to this:  
+
+![Temporal Targets](./images/temporal-targets.png)
+
+### 7.6 Find out Grafana password for the `admin` user
+
+A random password was generated for the default Grafana user `admin` during installation. You can find out the password by running the following command.
+
+```bash
+kubectl get secret prometheus-grafana -n temporal -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+You should see something like this: `AIwGCx4ASUZAD2ffedBWa48HRAWLx1k8oQ30p7rk`
+
+### 7.6 Port-forward the Grafana UI
+
+With the password handy, we now can log into Grafana. Go to http://localhost:3000, and log in with the user `admin` and the password above.
+
+### 7.7 Import the Temporal server dashboard
+
+Tiho created a wonderful [Grafana dashboard](https://github.com/tsurdilo/temporal-server-operations/tree/main/metrics/dashboards/server) that provides in-depth observability for all the Temproal services.
+
+Import the dashboard into Grafana. It looks like this. Feel free to explore the metrics.
+
+![Temporal Dashboard](./images/grafana-dashboard.png)
+
+---
+
+## Phase 8 — Deploy a workflow to your cluster (optional)
+
+With everything running, you can validate your installation by deploy the [money transfer workflow](https://learn.temporal.io/getting_started/java/first_program_in_java/) to your cluster. 
 
 ---
 

@@ -17,6 +17,7 @@ A step-by-step guide and scripts for running a local Temporal OSS cluster using 
 - **minikube** — local Kubernetes cluster using the Docker driver
 - **PostgreSQL** — deployed in-cluster via Bitnami Helm chart, used for both persistence and visibility stores
 - **Temporal** — installed via the [temporalio/helm-charts](https://github.com/temporalio/helm-charts) Helm chart
+- **Prometheus & Grafana** - installed via the [prometheus-community](https://prometheus-community.github.io/helm-charts) Helm chart
 
 ## Prerequisites
 
@@ -46,6 +47,7 @@ Follow `install-notes.md` in order. It covers:
 2. Starting a local Kubernetes cluster
 3. Deploying PostgreSQL into the cluster
 4. Installing Temporal via Helm
-5. Connecting your local machine to the cluster
+5. Installing Promethus and Grafana
+6. Connecting your local machine to the cluster
 
 The guide intentionally stops short of reproducing what is already in the [Temporal helm chart README](https://github.com/temporalio/helm-charts/tree/main) — it focuses on the preparation steps and the non-obvious details that aren't covered there.
