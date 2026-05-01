@@ -24,11 +24,11 @@ A step-by-step guide and scripts for running a local Temporal OSS cluster using 
 
 - Docker (running)
 - `kubectl`, `helm`, and `minikube` installed via Homebrew
-- See `install-notes.md` Phase 1 for setup details
+- See [`install-notes.md`](install-notes.md) Phase 1 for setup details
 
 ## Quick Start
 
-Once the initial install is complete:
+Once the [initial install](install-notes.md) is complete:
 
 ```bash
 ./start-temporal.sh   # bring the cluster up
