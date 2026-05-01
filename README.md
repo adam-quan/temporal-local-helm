@@ -39,8 +39,8 @@ Once the initial install is complete:
 |----------|---------|
 | Web UI | http://localhost:8080 |
 | SDK / CLI | localhost:7233 |
-| Promethus | localhost:9090 |
-| Grafana | localhost:3000 |
+| Promethus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
 
 ## First Time Setup
 
