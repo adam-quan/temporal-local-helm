@@ -431,6 +431,7 @@ Navigate to `http://127.0.0.1:8080/namespaces` — the `default` namespace shoul
 All Temporal services expose extensive amount of metrics for observability. These metrics are critical for performance tuning and troubleshooting. By installing Prometheus and Grafana, we will be able to collect these metrics, visualize them and create alerts.
 
 The easiest way to install both is using the prometheus helm chart from the [community repo](https://prometheus-community.github.io/helm-charts). The `kube-prometheus-stack` includes Prometheus, Grafana, AlertManager, and useful exporters. The architecture:
+
 ![Prometheus architecture](./images/prometheus-architecture.png)
 
 A couple of great blogs on this topic:
