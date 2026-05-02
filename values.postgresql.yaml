@@ -2,6 +2,11 @@
 # Replace `_HOST_`, `_USERNAME_`, and `_PASSWORD_` with your PostgreSQL database host, username, and password.
 
 server:
+  metrics:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
   config:
     persistence:
       defaultStore: default

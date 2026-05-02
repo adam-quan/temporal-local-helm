@@ -487,35 +487,38 @@ Open http://localhost:9090/targets, you should see all the targests Prometheus i
 
 We need to deploy a ServiceMonitor to scrape Temporal metrics. A ServiceMonitor is a Custom Resource Definition (CRD) introduced by the Prometheus Operator. It tells Prometheus exactly which Kubernetes Services to monitor and how to find their metrics endpoints. 
 
-The file `servicemonitor.yaml` contains with the following content. We are basically scraping all `/metrics` endpoints from the `temporal` namespace.
+The Temporal Helm chart includes built-in support for ServiceMonitors. To enable it, we need to update the `values.postgresql.yaml` file. Add the following to `values.postgresql.yaml`, immediately after `server:`. Not that the `additionalLabels` is very important. The prometheus-operator requires the `release: prometheus` label (whatever the Helm install name is) on ServiceMonitor objects to ensure they are selected by the Prometheus instance. The Prometheus CRD definition typically includes a serviceMonitorSelector that matches labels, often defaulting to `release: <Helm install name>` to avoid collecting unintended monitors. If a ServiceMonitor is missing this label, it will not be picked up by the operator, and the metrics will not appear in the Prometheus UI.
 
 ```bash
-# servicemonitor.yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: temporal-monitor
-  namespace: temporal
-  labels:
-    release: prometheus
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/headless: 'true'
-  namespaceSelector:
-    matchNames:
-      - temporal
-  endpoints:
-    - port: metrics
-      path: /metrics
-      interval: 30s
-      scrapeTimeout: 10s
+  metrics:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+```
+Update:
+
+```bash
+helm upgrade --repo https://go.temporal.io/helm-charts \        
+  -f values.postgresql.yaml \
+  temporal temporal \
+  --namespace temporal \
+  --timeout 900s
 ```
 
-Deploy the ServiceMonitor:
+Confirm the ServiceMontiors are deployed:
 
 ```bash
-kubectl apply -f servicemonitor.yaml
+kubectl get servicemonitor -n temporal 
+```
+
+You should see a list containing all four temporal services similar to this:
+
+```bash
+temporal-frontend                                    45m
+temporal-history                                     45m
+temporal-matching                                    45m
+temporal-worker                                      45m
 ```
 
 ### 7.6 Verify Temporal metrics targets
