@@ -523,7 +523,7 @@ temporal-worker                                      45m
 
 ### 7.6 Verify Temporal metrics targets
 
-Got to http://localhost:9090/targets, you should see all four Temporal services listed. Similar to this:  
+Got to http://localhost:9090/targets, you should see all four Temporal services listed. You might have to select the right scrape pool from the dropdown.
 
 ![Temporal Targets](./images/temporal-targets.png)
 
